@@ -21,9 +21,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -38,14 +39,13 @@ import io.michaelrocks.libphonenumber.android.Phonenumber;
 /**
  * Created by hbb20 on 11/1/16.
  */
-public class CountryCodePicker extends RelativeLayout {
+public class CountryCodePicker extends ConstraintLayout {
 
     static final int DEFAULT_UNSET = -99;
     static String TAG = "CCP";
     static String BUNDLE_SELECTED_CODE = "selectedCode";
     static int LIB_DEFAULT_COUNTRY_CODE = 91;
     private static int TEXT_GRAVITY_LEFT = -1, TEXT_GRAVITY_RIGHT = 1, TEXT_GRAVITY_CENTER = 0;
-    private static String ANDROID_NAME_SPACE = "http://schemas.android.com/apk/res/android";
     String CCP_PREF_FILE = "CCP_PREF_FILE";
     int defaultCountryCode;
     String defaultCountryNameCode;
@@ -54,11 +54,11 @@ public class CountryCodePicker extends RelativeLayout {
     LayoutInflater mInflater;
     TextView textView_selectedCountry;
     EditText editText_registeredCarrierNumber;
-    RelativeLayout holder;
+    ConstraintLayout holder;
     ImageView imageViewArrow;
     CCPCountry selectedCCPCountry;
     CCPCountry defaultCCPCountry;
-    RelativeLayout relativeClickConsumer;
+    View tapTarget;
     CountryCodePicker codePicker;
     TextGravity currentTextGravity;
     String originalHint = "";
@@ -75,7 +75,6 @@ public class CountryCodePicker extends RelativeLayout {
     boolean ccpDialogShowFlag = true;
     boolean searchAllowed = true;
     boolean showArrow = true;
-    boolean showCloseIcon = false;
     boolean rememberLastSelection = false;
     boolean detectCountryWithAreaCode = true;
     boolean ccpDialogShowNameCode = true;
@@ -102,7 +101,6 @@ public class CountryCodePicker extends RelativeLayout {
     boolean dialogKeyboardAutoPopup = true;
     boolean ccpClickable = true;
     boolean autoDetectLanguageEnabled = false, autoDetectCountryEnabled = false, numberAutoFormattingEnabled = true, hintExampleNumberEnabled = false;
-    String xmlWidth = "notSet";
     TextWatcher validityTextWatcher;
     InternationalPhoneTextWatcher formattingTextWatcher;
     boolean reportedValidity;
@@ -191,26 +189,33 @@ public class CountryCodePicker extends RelativeLayout {
     private void init(AttributeSet attrs) {
         mInflater = LayoutInflater.from(context);
 
-        if (attrs != null) {
-            xmlWidth = attrs.getAttributeValue(ANDROID_NAME_SPACE, "layout_width");
-        }
-        removeAllViewsInLayout();
-        //at run time, match parent value returns LayoutParams.MATCH_PARENT ("-1"), for some android xml preview it returns "fill_parent"
-        if (attrs != null && xmlWidth != null && (xmlWidth.equals(LayoutParams.MATCH_PARENT + "") || xmlWidth.equals(LayoutParams.FILL_PARENT + "") || xmlWidth.equals("fill_parent") || xmlWidth.equals("match_parent"))) {
-            holderView = mInflater.inflate(R.layout.layout_full_width_code_picker, this, true);
-        } else {
-            holderView = mInflater.inflate(R.layout.layout_code_picker, this, true);
+        if(getChildCount() == 0) {
+            int width = Integer.MIN_VALUE;
+            String xmlWidth = "";
+            if (attrs != null) {
+                String ANDROID_NAME_SPACE = "http://schemas.android.com/apk/res/android";
+                xmlWidth = attrs.getAttributeValue(ANDROID_NAME_SPACE, "layout_width");
+                if(xmlWidth != null) {
+                    width = Integer.valueOf(xmlWidth);
+                }
+            }
+
+            if (width == LayoutParams.MATCH_PARENT || "fill_parent".equals(xmlWidth) || "match_parent".equals(xmlWidth)) {
+                holderView = mInflater.inflate(R.layout.layout_full_width_code_picker, this, true);
+            } else {
+                holderView = mInflater.inflate(R.layout.layout_code_picker, this, true);
+            }
         }
 
-        textView_selectedCountry = (TextView) holderView.findViewById(R.id.textView_selectedCountry);
-        holder = (RelativeLayout) holderView.findViewById(R.id.countryCodeHolder);
-        imageViewArrow = (ImageView) holderView.findViewById(R.id.imageView_arrow);
-        relativeClickConsumer = (RelativeLayout) holderView.findViewById(R.id.rlClickConsumer);
+        textView_selectedCountry = holderView.findViewById(R.id.selectedCountry);
+        holder = holderView.findViewById(R.id.countryCodeHolder);
+        imageViewArrow = holderView.findViewById(R.id.arrow);
+        tapTarget = holderView.findViewById(R.id.tapTarget);
         codePicker = this;
         if (attrs != null) {
             applyCustomProperty(attrs);
         }
-        relativeClickConsumer.setOnClickListener(countryCodeHolderClickListener);
+        tapTarget.setOnClickListener(countryCodeHolderClickListener);
     }
 
     private void applyCustomProperty(AttributeSet attrs) {
@@ -295,9 +300,6 @@ public class CountryCodePicker extends RelativeLayout {
             //show arrow
             showArrow = a.getBoolean(R.styleable.CountryCodePicker_ccp_showArrow, true);
             refreshArrowViewVisibility();
-
-            //show close icon
-            showCloseIcon = a.getBoolean(R.styleable.CountryCodePicker_ccpDialog_showCloseIcon, false);
 
             //show flag
             showFlag(a.getBoolean(R.styleable.CountryCodePicker_ccp_showFlag, true));
@@ -1025,11 +1027,11 @@ public class CountryCodePicker extends RelativeLayout {
         this.holderView = holderView;
     }
 
-    public RelativeLayout getHolder() {
+    public ConstraintLayout getHolder() {
         return holder;
     }
 
-    private void setHolder(RelativeLayout holder) {
+    private void setHolder(ConstraintLayout holder) {
         this.holder = holder;
     }
 
@@ -1066,19 +1068,6 @@ public class CountryCodePicker extends RelativeLayout {
      */
     public void setShowFastScroller(boolean showFastScroller) {
         this.showFastScroller = showFastScroller;
-    }
-
-    protected boolean isShowCloseIcon() {
-        return showCloseIcon;
-    }
-
-    /**
-     * if true, this will give explicit close icon in CCP dialog
-     *
-     * @param showCloseIcon
-     */
-    public void showCloseIcon(boolean showCloseIcon) {
-        this.showCloseIcon = showCloseIcon;
     }
 
     EditText getEditText_registeredCarrierNumber() {
@@ -1374,13 +1363,13 @@ public class CountryCodePicker extends RelativeLayout {
     public void setCcpClickable(boolean ccpClickable) {
         this.ccpClickable = ccpClickable;
         if (!ccpClickable) {
-            relativeClickConsumer.setOnClickListener(null);
-            relativeClickConsumer.setClickable(false);
-            relativeClickConsumer.setEnabled(false);
+            tapTarget.setOnClickListener(null);
+            tapTarget.setClickable(false);
+            tapTarget.setEnabled(false);
         } else {
-            relativeClickConsumer.setOnClickListener(countryCodeHolderClickListener);
-            relativeClickConsumer.setClickable(true);
-            relativeClickConsumer.setEnabled(true);
+            tapTarget.setOnClickListener(countryCodeHolderClickListener);
+            tapTarget.setClickable(true);
+            tapTarget.setEnabled(true);
         }
     }
 

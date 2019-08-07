@@ -64,7 +64,6 @@
         <attr name="ccpDialog_backgroundColor" format="color" />
         <attr name="ccpDialog_textColor" format="color" />
         <attr name="ccpDialog_searchEditTextTint" format="color" />
-        <attr name="ccpDialog_showCloseIcon" format="boolean" />
         <attr name="ccpDialog_showTitle" format="boolean" />
         <attr name="ccpDialog_initialScrollToSelection" format="boolean" />
         <!--list of languages-->

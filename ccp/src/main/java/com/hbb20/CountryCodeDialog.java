@@ -15,7 +15,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -81,7 +80,7 @@ class CountryCodeDialog {
         codePicker.refreshPreferredCountries();
         List<CCPCountry> masterCountries = CCPCountry.getCustomMasterCountryList(context, codePicker);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.getWindow().setContentView(R.layout.layout_picker_dialog);
+        dialog.setContentView(R.layout.layout_picker_dialog);
 
         //keyboard
         if (codePicker.isSearchAllowed() && codePicker.isDialogKeyboardAutoPopup()) {
@@ -92,27 +91,24 @@ class CountryCodeDialog {
 
 
         //dialog views
-        RecyclerView recyclerView_countryDialog = (RecyclerView) dialog.findViewById(R.id.recycler_countryDialog);
-        final TextView textViewTitle = (TextView) dialog.findViewById(R.id.textView_title);
-        RelativeLayout rlQueryHolder = (RelativeLayout) dialog.findViewById(R.id.rl_query_holder);
-        ImageView imgClearQuery = (ImageView) dialog.findViewById(R.id.img_clear_query);
-        final EditText editText_search = (EditText) dialog.findViewById(R.id.editText_search);
-        TextView textView_noResult = (TextView) dialog.findViewById(R.id.textView_noresult);
-        RelativeLayout rlHolder = (RelativeLayout) dialog.findViewById(R.id.rl_holder);
-        ImageView imgDismiss = (ImageView) dialog.findViewById(R.id.img_dismiss);
+        RecyclerView countryList = dialog.findViewById(R.id.countryList);
+        final TextView title = dialog.findViewById(R.id.title);
+        ImageView clearSearch = dialog.findViewById(R.id.clearSearch);
+        final EditText search = dialog.findViewById(R.id.search);
+        TextView emptyResults = dialog.findViewById(R.id.emptyResults);
 
         // type faces
         //set type faces
         try {
             if (codePicker.getDialogTypeFace() != null) {
                 if (codePicker.getDialogTypeFaceStyle() != CountryCodePicker.DEFAULT_UNSET) {
-                    textView_noResult.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
-                    editText_search.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
-                    textViewTitle.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
+                    emptyResults.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
+                    search.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
+                    title.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
                 } else {
-                    textView_noResult.setTypeface(codePicker.getDialogTypeFace());
-                    editText_search.setTypeface(codePicker.getDialogTypeFace());
-                    textViewTitle.setTypeface(codePicker.getDialogTypeFace());
+                    emptyResults.setTypeface(codePicker.getDialogTypeFace());
+                    search.setTypeface(codePicker.getDialogTypeFace());
+                    title.setTypeface(codePicker.getDialogTypeFace());
                 }
             }
         } catch (Exception e) {
@@ -121,67 +117,52 @@ class CountryCodeDialog {
 
         //dialog background color
         if (codePicker.getDialogBackgroundColor() != 0) {
-            rlHolder.setBackgroundColor(codePicker.getDialogBackgroundColor());
-        }
-
-        //close button visibility
-        if (codePicker.isShowCloseIcon()) {
-            imgDismiss.setVisibility(View.VISIBLE);
-            imgDismiss.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    dialog.dismiss();
-                }
-            });
-        } else {
-            imgDismiss.setVisibility(View.GONE);
+            // TODO
+//            rlHolder.setBackgroundColor(codePicker.getDialogBackgroundColor());
         }
 
         //title
         if (!codePicker.getCcpDialogShowTitle()) {
-            textViewTitle.setVisibility(View.GONE);
+            title.setVisibility(View.GONE);
         }
 
         //clear button color and title color
         if (codePicker.getDialogTextColor() != 0) {
             int textColor = codePicker.getDialogTextColor();
-            imgClearQuery.setColorFilter(textColor);
-            imgDismiss.setColorFilter(textColor);
-            textViewTitle.setTextColor(textColor);
-            textView_noResult.setTextColor(textColor);
-            editText_search.setTextColor(textColor);
-            editText_search.setHintTextColor(Color.argb(100, Color.red(textColor), Color.green(textColor), Color.blue(textColor)));
+            clearSearch.setColorFilter(textColor);
+            title.setTextColor(textColor);
+            emptyResults.setTextColor(textColor);
+            search.setTextColor(textColor);
+            search.setHintTextColor(Color.argb(100, Color.red(textColor), Color.green(textColor), Color.blue(textColor)));
         }
 
 
         //editText tint
         if (codePicker.getDialogSearchEditTextTintColor() != 0) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                editText_search.setBackgroundTintList(ColorStateList.valueOf(codePicker.getDialogSearchEditTextTintColor()));
-                setCursorColor(editText_search, codePicker.getDialogSearchEditTextTintColor());
+                search.setBackgroundTintList(ColorStateList.valueOf(codePicker.getDialogSearchEditTextTintColor()));
+                setCursorColor(search, codePicker.getDialogSearchEditTextTintColor());
             }
         }
 
 
         //add messages to views
-        textViewTitle.setText(codePicker.getDialogTitle());
-        editText_search.setHint(codePicker.getSearchHintText());
-        textView_noResult.setText(codePicker.getNoResultACK());
+        title.setText(codePicker.getDialogTitle());
+        search.setHint(codePicker.getSearchHintText());
+        emptyResults.setText(codePicker.getNoResultACK());
 
-        //this will make dialog compact
-        if (!codePicker.isSearchAllowed()) {
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) recyclerView_countryDialog.getLayoutParams();
-            params.height = RecyclerView.LayoutParams.WRAP_CONTENT;
-            recyclerView_countryDialog.setLayoutParams(params);
+        if(!codePicker.isSearchAllowed()) {
+            search.setVisibility(View.GONE);
+            clearSearch.setVisibility(View.GONE);
         }
 
-        final CountryCodeAdapter cca = new CountryCodeAdapter(context, masterCountries, codePicker, rlQueryHolder, editText_search, textView_noResult, dialog, imgClearQuery);
-        recyclerView_countryDialog.setLayoutManager(new LinearLayoutManager(context));
-        recyclerView_countryDialog.setAdapter(cca);
+        final CountryCodeAdapter cca = new CountryCodeAdapter(context, masterCountries, codePicker, search, emptyResults, dialog, clearSearch);
+        countryList.setLayoutManager(new LinearLayoutManager(context));
+        countryList.setAdapter(cca);
 
         //fast scroller
-        FastScroller fastScroller = (FastScroller) dialog.findViewById(R.id.fastscroll);
-        fastScroller.setRecyclerView(recyclerView_countryDialog);
+        FastScroller fastScroller = dialog.findViewById(R.id.fastscroll);
+        fastScroller.setRecyclerView(countryList);
         if (codePicker.isShowFastScroller()) {
             if (codePicker.getFastScrollerBubbleColor() != 0) {
                 fastScroller.setBubbleColor(codePicker.getFastScrollerBubbleColor());
@@ -244,14 +225,21 @@ class CountryCodeDialog {
                 }
                 for (int i = 0; i < masterCountries.size(); i++) {
                     if (masterCountries.get(i).nameCode.equalsIgnoreCase(countryNameCode)) {
-                        recyclerView_countryDialog.scrollToPosition(i + preferredCountriesOffset);
+                        countryList.scrollToPosition(i + preferredCountriesOffset);
                         break;
                     }
                 }
             }
         }
 
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+
         dialog.show();
+
+        dialog.getWindow().setAttributes(lp);
         if (codePicker.getDialogEventsListener() != null) {
             codePicker.getDialogEventsListener().onCcpDialogOpen(dialog);
         }

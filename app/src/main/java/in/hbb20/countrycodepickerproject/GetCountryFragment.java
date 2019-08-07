@@ -62,7 +62,7 @@ public class GetCountryFragment extends Fragment {
     private void assignViews() {
         ccp=(CountryCodePicker)getView().findViewById(R.id.ccp);
         textViewCountryCode=(TextView)getView().findViewById(R.id.textView_countryCode);
-        textViewCountryName=(TextView)getView().findViewById(R.id.textView_countryName);
+        textViewCountryName=(TextView)getView().findViewById(R.id.countryName);
         textViewCountryNameCode=(TextView)getView().findViewById(R.id.textView_countryNameCode);
         buttonReadCountry=(Button)getView().findViewById(R.id.button_readCountry);
         buttonNext=(Button)getView().findViewById(R.id.button_next);

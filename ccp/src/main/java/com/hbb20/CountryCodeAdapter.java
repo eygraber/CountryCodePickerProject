@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.transition.TransitionManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.futuremind.recyclerviewfastscroll.SectionTitleProvider;
@@ -26,46 +28,38 @@ import java.util.List;
  * Created by hbb20 on 11/1/16.
  */
 class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.CountryCodeViewHolder> implements SectionTitleProvider {
-    List<CCPCountry> filteredCountries = null, masterCountries = null;
-    TextView textView_noResult;
-    CountryCodePicker codePicker;
-    LayoutInflater inflater;
-    EditText editText_search;
-    Dialog dialog;
-    Context context;
-    RelativeLayout rlQueryHolder;
-    ImageView imgClearQuery;
-    int preferredCountriesCount = 0;
+    private List<CCPCountry> filteredCountries, masterCountries;
+    private TextView emptyResults;
+    private CountryCodePicker codePicker;
+    private LayoutInflater inflater;
+    private EditText search;
+    private Dialog dialog;
+    private Context context;
+    private ImageView clearSearch;
+    private int preferredCountriesCount = 0;
 
-    CountryCodeAdapter(Context context, List<CCPCountry> countries, CountryCodePicker codePicker, RelativeLayout rlQueryHolder, final EditText editText_search, TextView textView_noResult, Dialog dialog, ImageView imgClearQuery) {
+    CountryCodeAdapter(Context context, List<CCPCountry> countries, CountryCodePicker codePicker, final EditText search, TextView emptyResults, Dialog dialog, ImageView clearSearch) {
         this.context = context;
         this.masterCountries = countries;
         this.codePicker = codePicker;
         this.dialog = dialog;
-        this.textView_noResult = textView_noResult;
-        this.editText_search = editText_search;
-        this.rlQueryHolder = rlQueryHolder;
-        this.imgClearQuery = imgClearQuery;
+        this.emptyResults = emptyResults;
+        this.search = search;
+        this.clearSearch = clearSearch;
         this.inflater = LayoutInflater.from(context);
         this.filteredCountries = getFilteredCountries("");
-        setSearchBar();
-    }
 
-    private void setSearchBar() {
-        if (codePicker.isSearchAllowed()) {
-            imgClearQuery.setVisibility(View.GONE);
+        if(codePicker.isSearchAllowed()) {
             setTextWatcher();
             setQueryClearListener();
-        } else {
-            rlQueryHolder.setVisibility(View.GONE);
         }
     }
 
     private void setQueryClearListener() {
-        imgClearQuery.setOnClickListener(new View.OnClickListener() {
+        clearSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editText_search.setText("");
+                search.setText("");
             }
         });
     }
@@ -74,8 +68,8 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
      * add textChangeListener, to apply new query each time editText get text changed.
      */
     private void setTextWatcher() {
-        if (this.editText_search != null) {
-            this.editText_search.addTextChangedListener(new TextWatcher() {
+        if (this.search != null) {
+            this.search.addTextChangedListener(new TextWatcher() {
 
                 @Override
                 public void afterTextChanged(Editable s) {
@@ -89,19 +83,21 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                     applyQuery(s.toString());
                     if (s.toString().trim().equals("")) {
-                        imgClearQuery.setVisibility(View.GONE);
+                        TransitionManager.beginDelayedTransition((ViewGroup) clearSearch.getParent());
+                        clearSearch.setVisibility(View.GONE);
                     } else {
-                        imgClearQuery.setVisibility(View.VISIBLE);
+                        TransitionManager.beginDelayedTransition((ViewGroup) clearSearch.getParent());
+                        clearSearch.setVisibility(View.VISIBLE);
                     }
                 }
             });
 
-            this.editText_search.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            this.search.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                         InputMethodManager in = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                        in.hideSoftInputFromWindow(editText_search.getWindowToken(), 0);
+                        in.hideSoftInputFromWindow(search.getWindowToken(), 0);
                         return true;
                     }
 
@@ -120,7 +116,7 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
     private void applyQuery(String query) {
 
 
-        textView_noResult.setVisibility(View.GONE);
+        emptyResults.setVisibility(View.GONE);
         query = query.toLowerCase();
 
         //if query started from "+" ignore it
@@ -131,7 +127,7 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
         filteredCountries = getFilteredCountries(query);
 
         if (filteredCountries.size() == 0) {
-            textView_noResult.setVisibility(View.VISIBLE);
+            emptyResults.setVisibility(View.VISIBLE);
         }
         notifyDataSetChanged();
     }
@@ -210,31 +206,31 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
     }
 
     class CountryCodeViewHolder extends RecyclerView.ViewHolder {
-        RelativeLayout relativeLayout_main;
-        TextView textView_name, textView_code;
+        ConstraintLayout root;
+        TextView name, code;
         View divider;
 
         public CountryCodeViewHolder(View itemView) {
             super(itemView);
-            relativeLayout_main = (RelativeLayout) itemView;
-            textView_name = (TextView) relativeLayout_main.findViewById(R.id.textView_countryName);
-            textView_code = (TextView) relativeLayout_main.findViewById(R.id.textView_code);
-            divider = relativeLayout_main.findViewById(R.id.preferenceDivider);
+            root = (ConstraintLayout) itemView;
+            name = root.findViewById(R.id.countryName);
+            code = root.findViewById(R.id.code);
+            divider = root.findViewById(R.id.preferenceDivider);
 
             if (codePicker.getDialogTextColor() != 0) {
-                textView_name.setTextColor(codePicker.getDialogTextColor());
-                textView_code.setTextColor(codePicker.getDialogTextColor());
+                name.setTextColor(codePicker.getDialogTextColor());
+                code.setTextColor(codePicker.getDialogTextColor());
                 divider.setBackgroundColor(codePicker.getDialogTextColor());
             }
 
             try {
                 if (codePicker.getDialogTypeFace() != null) {
                     if (codePicker.getDialogTypeFaceStyle() != CountryCodePicker.DEFAULT_UNSET) {
-                        textView_code.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
-                        textView_name.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
+                        code.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
+                        name.setTypeface(codePicker.getDialogTypeFace(), codePicker.getDialogTypeFaceStyle());
                     } else {
-                        textView_code.setTypeface(codePicker.getDialogTypeFace());
-                        textView_name.setTypeface(codePicker.getDialogTypeFace());
+                        code.setTypeface(codePicker.getDialogTypeFace());
+                        name.setTypeface(codePicker.getDialogTypeFace());
                     }
                 }
             } catch (Exception e) {
@@ -245,12 +241,12 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
         public void setCountry(CCPCountry ccpCountry) {
             if (ccpCountry != null) {
                 divider.setVisibility(View.GONE);
-                textView_name.setVisibility(View.VISIBLE);
-                textView_code.setVisibility(View.VISIBLE);
+                name.setVisibility(View.VISIBLE);
+                code.setVisibility(View.VISIBLE);
                 if (codePicker.isCcpDialogShowPhoneCode()) {
-                    textView_code.setVisibility(View.VISIBLE);
+                    code.setVisibility(View.VISIBLE);
                 } else {
-                    textView_code.setVisibility(View.GONE);
+                    code.setVisibility(View.GONE);
                 }
 
                 String countryName = "";
@@ -266,17 +262,17 @@ class CountryCodeAdapter extends RecyclerView.Adapter<CountryCodeAdapter.Country
                     countryName += " (" + ccpCountry.getNameCode().toUpperCase() + ")";
                 }
 
-                textView_name.setText(countryName);
-                textView_code.setText("+" + ccpCountry.getPhoneCode());
+                name.setText(countryName);
+                code.setText("+" + ccpCountry.getPhoneCode());
             } else {
                 divider.setVisibility(View.VISIBLE);
-                textView_name.setVisibility(View.GONE);
-                textView_code.setVisibility(View.GONE);
+                name.setVisibility(View.GONE);
+                code.setVisibility(View.GONE);
             }
         }
 
-        public RelativeLayout getMainView() {
-            return relativeLayout_main;
+        public ConstraintLayout getMainView() {
+            return root;
         }
     }
 }

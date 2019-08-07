@@ -1,38 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/countryCodeHolder"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:padding="8dp"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <RelativeLayout
-        android:id="@+id/rlClickConsumer"
+    <TextView
+        android:id="@+id/selectedCountry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/ccp_selectable_bg"
-        android:padding="8dp">
+        android:maxLines="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="🇺🇸(US) +1"
+        tools:textColor="@android:color/black"
+        tools:textSize="18sp" />
 
-        <TextView
-            android:id="@+id/textView_selectedCountry"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@+id/linear_flag_holder"
-            android:layout_toRightOf="@+id/linear_flag_holder"
-            android:singleLine="true"
-            tools:text="🇺🇸(US) +1"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
+    <ImageView
+        android:id="@+id/arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:src="@drawable/ccp_down_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/selectedCountry"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:alpha="0.6" />
 
-        <ImageView
-            android:id="@+id/imageView_arrow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@+id/textView_selectedCountry"
-            android:layout_toRightOf="@+id/textView_selectedCountry"
-            android:adjustViewBounds="true"
-            android:alpha="0.6"
-            android:src="@drawable/ccp_down_arrow" />
-    </RelativeLayout>
-</RelativeLayout>
+    <View
+        android:id="@+id/tapTarget"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</merge>
