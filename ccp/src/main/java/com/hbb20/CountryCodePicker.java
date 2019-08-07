@@ -21,7 +21,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,9 +56,6 @@ public class CountryCodePicker extends RelativeLayout {
     EditText editText_registeredCarrierNumber;
     RelativeLayout holder;
     ImageView imageViewArrow;
-    ImageView imageViewFlag;
-    LinearLayout linearFlagBorder;
-    LinearLayout linearFlagHolder;
     CCPCountry selectedCCPCountry;
     CCPCountry defaultCCPCountry;
     RelativeLayout relativeClickConsumer;
@@ -84,14 +80,12 @@ public class CountryCodePicker extends RelativeLayout {
     boolean detectCountryWithAreaCode = true;
     boolean ccpDialogShowNameCode = true;
     boolean ccpDialogInitialScrollToSelection = false;
-    boolean ccpUseEmoji = false;
     boolean ccpUseDummyEmojiForPreview = false;
     boolean internationalFormattingOnly = true;
     PhoneNumberType hintExampleNumberType = PhoneNumberType.MOBILE;
     String selectionMemoryTag = "ccp_last_selection";
     int contentColor = DEFAULT_UNSET;
     int arrowColor = DEFAULT_UNSET;
-    int borderFlagColor;
     Typeface dialogTypeFace;
     int dialogTypeFaceStyle;
     List<CCPCountry> preferredCountries;
@@ -211,9 +205,6 @@ public class CountryCodePicker extends RelativeLayout {
         textView_selectedCountry = (TextView) holderView.findViewById(R.id.textView_selectedCountry);
         holder = (RelativeLayout) holderView.findViewById(R.id.countryCodeHolder);
         imageViewArrow = (ImageView) holderView.findViewById(R.id.imageView_arrow);
-        imageViewFlag = (ImageView) holderView.findViewById(R.id.image_flag);
-        linearFlagHolder = (LinearLayout) holderView.findViewById(R.id.linear_flag_holder);
-        linearFlagBorder = (LinearLayout) holderView.findViewById(R.id.linear_flag_border);
         relativeClickConsumer = (RelativeLayout) holderView.findViewById(R.id.rlClickConsumer);
         codePicker = this;
         if (attrs != null) {
@@ -244,9 +235,6 @@ public class CountryCodePicker extends RelativeLayout {
 
             //show title on dialog
             ccpDialogShowTitle = a.getBoolean(R.styleable.CountryCodePicker_ccpDialog_showTitle, true);
-
-            //show title on dialog
-            ccpUseEmoji = a.getBoolean(R.styleable.CountryCodePicker_ccp_useFlagEmoji, false);
 
             //show title on dialog
             ccpUseDummyEmojiForPreview = a.getBoolean(R.styleable.CountryCodePicker_ccp_useDummyEmojiForPreview, false);
@@ -425,17 +413,6 @@ public class CountryCodePicker extends RelativeLayout {
                 setContentColor(contentColor);
             }
 
-            // flag border color
-            int borderFlagColor;
-            if (isInEditMode()) {
-                borderFlagColor = a.getColor(R.styleable.CountryCodePicker_ccp_flagBorderColor, 0);
-            } else {
-                borderFlagColor = a.getColor(R.styleable.CountryCodePicker_ccp_flagBorderColor, context.getResources().getColor(R.color.defaultBorderFlagColor));
-            }
-            if (borderFlagColor != 0) {
-                setFlagBorderColor(borderFlagColor);
-            }
-
             //dialog colors
             setDialogBackgroundColor(a.getColor(R.styleable.CountryCodePicker_ccpDialog_backgroundColor, 0));
             setDialogTextColor(a.getColor(R.styleable.CountryCodePicker_ccpDialog_textColor, 0));
@@ -445,7 +422,6 @@ public class CountryCodePicker extends RelativeLayout {
             int textSize = a.getDimensionPixelSize(R.styleable.CountryCodePicker_ccp_textSize, 0);
             if (textSize > 0) {
                 textView_selectedCountry.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-                setFlagSize(textSize);
                 setArrowSize(textSize);
             }
 
@@ -750,14 +726,6 @@ public class CountryCodePicker extends RelativeLayout {
         this.textView_selectedCountry = textView_selectedCountry;
     }
 
-    public ImageView getImageViewFlag() {
-        return imageViewFlag;
-    }
-
-    public void setImageViewFlag(ImageView imageViewFlag) {
-        this.imageViewFlag = imageViewFlag;
-    }
-
     private CCPCountry getSelectedCountry() {
         if (selectedCCPCountry == null) {
             setSelectedCountry(getDefaultCountry());
@@ -784,7 +752,7 @@ public class CountryCodePicker extends RelativeLayout {
         String displayText = "";
 
         // add flag if required
-        if (showFlag && ccpUseEmoji) {
+        if (showFlag) {
             if (isInEditMode()) {
 //                android studio preview shows huge space if 0 width space is not added.
                 if (ccpUseDummyEmojiForPreview) {
@@ -824,12 +792,10 @@ public class CountryCodePicker extends RelativeLayout {
         textView_selectedCountry.setText(displayText);
 
         //avoid blank state of ccp
-        if (showFlag == false && displayText.length() == 0) {
+        if (!showFlag && displayText.length() == 0) {
             displayText += "+" + selectedCCPCountry.getPhoneCode();
             textView_selectedCountry.setText(displayText);
         }
-
-        imageViewFlag.setImageResource(selectedCCPCountry.getFlagID());
 
         if (onCountryChangeListener != null) {
             onCountryChangeListener.onCountrySelected();
@@ -1878,16 +1844,6 @@ public class CountryCodePicker extends RelativeLayout {
     }
 
     /**
-     * Sets flag border color of CCP.
-     *
-     * @param borderFlagColor color to apply to flag border
-     */
-    public void setFlagBorderColor(int borderFlagColor) {
-        this.borderFlagColor = borderFlagColor;
-        linearFlagBorder.setBackgroundColor(this.borderFlagColor);
-    }
-
-    /**
      * Modifies size of text in side CCP view.
      *
      * @param textSize size of text in pixels
@@ -1896,7 +1852,6 @@ public class CountryCodePicker extends RelativeLayout {
         if (textSize > 0) {
             textView_selectedCountry.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
             setArrowSize(textSize);
-            setFlagSize(textSize);
         }
     }
 
@@ -2012,39 +1967,10 @@ public class CountryCodePicker extends RelativeLayout {
         this.onCountryChangeListener = onCountryChangeListener;
     }
 
-    /**
-     * Modifies size of flag in CCP view
-     *
-     * @param flagSize size in pixels
-     */
-    public void setFlagSize(int flagSize) {
-        imageViewFlag.getLayoutParams().height = flagSize;
-        imageViewFlag.requestLayout();
-    }
-
     public void showFlag(boolean showFlag) {
         this.showFlag = showFlag;
-        refreshFlagVisibility();
         if (!isInEditMode())
             setSelectedCountry(selectedCCPCountry);
-    }
-
-    private void refreshFlagVisibility() {
-        if (showFlag) {
-            if (ccpUseEmoji) {
-                linearFlagHolder.setVisibility(GONE);
-            } else {
-                linearFlagHolder.setVisibility(VISIBLE);
-            }
-        } else {
-            linearFlagHolder.setVisibility(GONE);
-        }
-    }
-
-    public void useFlagEmoji(boolean useFlagEmoji) {
-        this.ccpUseEmoji = useFlagEmoji;
-        refreshFlagVisibility();
-        setSelectedCountry(selectedCCPCountry);
     }
 
     public void showFullName(boolean showFullName) {

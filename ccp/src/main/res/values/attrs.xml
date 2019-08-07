@@ -9,7 +9,6 @@
         <attr name="ccp_arrowSize" format="dimension" />
         <attr name="ccp_customMasterCountries" format="string" />
         <attr name="ccp_excludedCountries" format="string" />
-        <attr name="ccp_flagBorderColor" format="color" />
         <attr name="ccp_countryPreference" format="string" />
         <attr name="ccp_defaultNameCode" format="string" />
         <attr name="ccp_selectionMemoryTag" format="string" />
