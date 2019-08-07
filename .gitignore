@@ -53,3 +53,7 @@ projectFilesBackup/
 .vscode
 .classpath
 **/output.json
+
+local.gradle
+
+.hprof

@@ -1,0 +1,113 @@
+ext {
+  bintrayRepo = 'maven'
+  bintrayName = 'ccp'
+
+  publishedGroupId = 'com.eygraber'
+  libraryName = 'CountryCodePicker'
+  artifact = 'ccp'
+
+  libraryDescription = 'Country Code Picker (CCP) is an android library which provides an easy way to search and select international country code for the phone number.'
+
+  siteUrl = 'https://github.com/eygraber/CountryCodePicker'
+  gitUrl = 'https://github.com/eygraber/CountryCodePicker.git'
+
+  libraryVersion = '2.3.1'
+
+  developerId = 'eygraber'
+  developerName = 'Eliezer Graber'
+  developerEmail = 'info@staticbloc.com'
+
+  licenseName = 'Apache-2.0'
+  licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0'
+  allLicenses = ["Apache-2.0"]
+}
+
+group = publishedGroupId
+version = libraryVersion
+
+install {
+  repositories.mavenInstaller {
+    pom.project {
+      packaging 'aar'
+      groupId publishedGroupId
+      artifactId artifact
+
+      name libraryName
+      description libraryDescription
+      url siteUrl
+
+      licenses {
+        license {
+          name licenseName
+          url licenseUrl
+        }
+      }
+      developers {
+        developer {
+          id developerId
+          name developerName
+          email developerEmail
+        }
+      }
+      scm {
+        connection gitUrl
+        developerConnection gitUrl
+        url siteUrl
+      }
+    }
+  }
+}
+
+task androidJavadocs(type: Javadoc) {
+  source = android.sourceSets.main.java.source
+  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+  archiveClassifier = 'javadoc'
+  from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+  archiveClassifier = 'sources'
+  from android.sourceSets.main.java.source
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+  allprojects {
+    tasks.withType(Javadoc) {
+      options.addStringOption('Xdoclint:none', '-quiet')
+    }
+  }
+}
+
+artifacts {
+  archives androidSourcesJar
+  archives androidJavadocsJar
+}
+
+if(rootProject.file('local.gradle').exists()) {
+  apply from: rootProject.file('local.gradle')
+}
+
+bintray {
+  user = project.findProperty('bintrayUser')
+  key = project.findProperty('bintrayKey')
+
+  configurations = ['archives']
+  pkg {
+    repo = bintrayRepo
+    name = bintrayName
+    desc = libraryDescription
+    websiteUrl = siteUrl
+    vcsUrl = gitUrl
+    licenses = allLicenses
+    dryRun = false
+    publish = true
+    override = false
+    publicDownloadNumbers = true
+    version {
+      desc = libraryDescription
+    }
+  }
+}

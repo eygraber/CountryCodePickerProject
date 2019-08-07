@@ -1,23 +1,26 @@
 apply plugin: 'com.android.library'
 
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
 ext {
     bintrayRepo = 'maven'
     bintrayName = 'ccp'
 
-    publishedGroupId = 'com.hbb20'
+    publishedGroupId = 'com.eygraber'
     libraryName = 'CountryCodePicker'
     artifact = 'ccp'
 
     libraryDescription = 'Country Code Picker (CCP) is an android library which provides an easy way to search and select international country code for the phone number.'
 
-    siteUrl = 'https://github.com/hbb20/CountryCodePickerProject'
-    gitUrl = 'https://github.com/hbb20/CountryCodePickerProject.git'
+    siteUrl = 'https://github.com/eygraber/CountryCodePickerProject'
+    gitUrl = 'https://github.com/eygraber/CountryCodePickerProject.git'
 
     libraryVersion = '2.3.1'
 
-    developerId = 'hbb20'
-    developerName = 'Harsh Bhakta'
-    developerEmail = 'harshbbhakta@gmail.com'
+    developerId = 'eygraber'
+    developerName = 'Eli Graber'
+    developerEmail = 'info@staticbloc.com'
 
     licenseName = 'The Apache Software License, Version 2.0'
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
@@ -46,22 +49,13 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation('com.futuremind.recyclerfastscroll:fastscroll:0.2.5', {
         exclude group: 'com.android.support'
     })
-    implementation 'io.michaelrocks:libphonenumber-android:8.10.14'
+    implementation 'io.michaelrocks:libphonenumber-android:8.10.16'
 }
 
-apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
-apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
-
-/**
- * While uploading,
- * ./gradlew install
- *
- * ./gradlew bintrayUpload
- */
+apply from: project.file('publishing.gradle')
